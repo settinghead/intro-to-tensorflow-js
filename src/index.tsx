@@ -1,6 +1,5 @@
 import * as React from "react";
 import { render } from "react-dom";
-import Hello from "./Hello";
 import "./tf-test";
 
 const styles = {
