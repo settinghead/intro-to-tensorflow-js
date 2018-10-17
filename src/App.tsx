@@ -31,27 +31,27 @@ export default class App extends React.Component<any, any> {
         );
       }
     };
-    const throttledSnapOne = throttle(_snapAndDrawOneFrame, 40);
+    const throttledSnapOne = throttle(_snapAndDrawOneFrame, 100);
+    const predict = () => ({ prob: 0, label: "nothing" });
+    const model = {};
+    const labels = [];
+
+    const _getNextPrediction = async () => {
+      try {
+        const img = cam.capture();
+        const { prob, label } = await predict(model, img, labels);
+        return { prob, label };
+      } catch (e) {
+        console.error(e);
+        return { label: "__error", prob: 0 };
+      }
+    };
+
+    const throttledGetNextPredict = throttle(_getNextPrediction, 200);
 
     const predictLoop = async () => {
       while (true) {
-        const { prob, label } = await debouncedGetNextPredict();
-        if (label !== "nothing" && prob > 0.8) {
-          const [binName, desc = null] = getBin(label);
-          this.setState({
-            label,
-            prob: prob,
-            activeBin: binName as Bin,
-            description: desc
-          });
-        } else {
-          this.setState({
-            label: null,
-            prob: null,
-            activeBin: null,
-            description: null
-          });
-        }
+        const { prob, label } = await throttledGetNextPredict();
       }
     };
 
@@ -72,7 +72,7 @@ export default class App extends React.Component<any, any> {
       }
     };
 
-    // predictLoop();
+    predictLoop();
     drawCamLoop();
   }
 
